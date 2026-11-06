@@ -1,0 +1,132 @@
+import { GITHUB_STEPS } from "../shared/github-course.js";
+export const GITHUB_QUESTIONS = [
+  [
+    "browse",
+    "GitHubでリポジトリのindex.htmlを読みたい。まずどこを開く？",
+    ["Codeタブのファイル一覧", "Settingsの削除画面", "自分のプロフィール画像"],
+    0,
+    "Codeタブでファイルを選ぶと内容を確認できます。",
+  ],
+  [
+    "browse",
+    "git_practiceを自分用に編集練習したい。適切な準備は？",
+    [
+      "自分のアカウントにForkするか、自分の練習用リポジトリを用意する",
+      "許可なく元リポジトリのmainへ書き込む",
+      "他人の認証情報を借りる",
+    ],
+    0,
+    "自分の練習場所を用意すれば、元のリポジトリを変更せずに一連の操作を練習できます。",
+  ],
+  [
+    "clone",
+    "自分のGitHubリポジトリをPCへ履歴ごとコピーするには？",
+    [
+      "git cloneにリポジトリのURLを渡す",
+      "git statusだけ実行する",
+      "GitHubのページをブックマークする",
+    ],
+    0,
+    "git cloneでリポジトリを複製し、そのフォルダにcdで移動します。",
+  ],
+  [
+    "clone",
+    "push先が自分の練習リポジトリかを確認するコマンドは？",
+    ["git remote -v", "git diff --staged", "git branch --show-current"],
+    0,
+    "git remote -vでリモートのURLを確認できます。ブランチ名だけでは送信先のリポジトリは分かりません。",
+  ],
+  [
+    "edit",
+    "index.htmlを保存した後、まだaddしていない変更内容を確認したい。次の操作は？",
+    ["git diff", "すぐにリポジトリを削除する", "git cloneをもう一度実行する"],
+    0,
+    "git diffで未ステージの差分を確認できます。git statusは変更ファイルやステージの状態を確認するのに使います。",
+  ],
+  [
+    "edit",
+    "ファイルを編集して保存した。すでにGitHubにも反映されている？",
+    [
+      "いいえ。通常はadd・commit・pushが必要",
+      "はい。保存と同時に必ず公開される",
+      "はい。ブラウザを閉じると反映される",
+    ],
+    0,
+    "PCの保存、Gitへのコミット、GitHubへのプッシュは別の操作です。",
+  ],
+  [
+    "commit",
+    "編集内容を確認した後、GitHubへ送る基本的な順序は？",
+    [
+      "git add → git commit → git push",
+      "git push → git add → git commit",
+      "git clone → git clone → git clone",
+    ],
+    0,
+    "addで記録対象を選び、commitでローカル履歴を作り、pushでリモートへ送信します。",
+  ],
+  [
+    "commit",
+    "git commitが成功したのにGitHubに変更が見えない。まず確認するのは？",
+    [
+      "正しいリモートとブランチへpushしたか",
+      "必ずアカウントを作り直す",
+      "パスワードをHTMLに書いたか",
+    ],
+    0,
+    "commitはローカルの記録です。push先と、GitHubで表示しているブランチも確認します。",
+  ],
+  [
+    "pr",
+    "自分のFork内で練習PRを作る。正しい設定は？",
+    [
+      "自分のリポジトリでbase: main、compare: practice/intro",
+      "元のリポジトリへ無条件に送る",
+      "baseとcompareを両方mainにする",
+    ],
+    0,
+    "今回は自分の練習用リポジトリ内で完結させます。取り込み先がbase、変更元がcompareです。",
+  ],
+  [
+    "pr",
+    "PRを作成する前に、どこで提案する変更を確認する？",
+    [
+      "Files changedなどの差分表示",
+      "ブラウザの閲覧履歴だけ",
+      "自分のアバター一覧",
+    ],
+    0,
+    "意図しないファイルや秘密情報が差分に含まれていないかも確認します。",
+  ],
+  [
+    "merge",
+    "PRを作成した。変更はもうmainへ取り込まれた？",
+    [
+      "まだ。確認してマージする必要がある",
+      "はい。作成時に必ず自動マージされる",
+      "はい。タイトルを書くだけで取り込まれる",
+    ],
+    0,
+    "PRの作成とマージは別です。差分・チェック・コメントを確認してから取り込みます。",
+  ],
+  [
+    "merge",
+    "GitHubでmainへマージした後、PCのmainも更新したい。どうする？",
+    [
+      "作業状態を確認し、mainへ切り替えてpullする",
+      "もう一度同じPRを作る",
+      "ファイルをすべて削除する",
+    ],
+    0,
+    "未コミット変更を確認してからgit switch main、git pull --ff-only origin mainで更新できます。失敗時は原因を確認します。",
+  ],
+].map(([lesson, prompt, choices, answer, explanation], i) => ({
+  id: "github-" + (i + 1),
+  topic: "git",
+  lesson,
+  prompt,
+  choices,
+  answer,
+  explanation,
+  source: GITHUB_STEPS.find((s) => s.id === lesson).source,
+}));

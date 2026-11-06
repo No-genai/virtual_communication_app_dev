@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#284c41" />
+    <title>こもれび — 集まって、学んで、つながる</title>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/"
+        >✳ <span>こもれび<small>KOMOREBI VILLAGE</small></span></a
+      ><span class="space-name" id="room-name">みんなのラウンジ</span
+      ><span class="live"><i></i><span id="count">0</span> 人が参加中</span
+      ><span id="connection" role="status">接続中…</span>
+    </header>
+    <div class="toolbar">
+      <div>
+        <button id="invite" disabled>↗ 招待リンク</button
+        ><button id="open-profile" disabled>プロフィール</button
+        ><button id="open-board" disabled>掲示板・資料</button
+        ><button id="open-whiteboard" disabled>ホワイトボード</button>
+      </div>
+      <div>
+        <button id="open-admin" disabled>主催者メニュー</button
+        ><button id="open-help">使い方</button>
+      </div>
+    </div>
+    <div id="notice" role="status" aria-live="polite"></div>
+    <main>
+      <section class="main-space">
+        <div class="title-row">
+          <div>
+            <p class="eyebrow">A SMALL VILLAGE, A NEW ADVENTURE</p>
+            <h1 id="space-title">同じ場所で、ひとやすみ。</h1>
+            <p class="muted" id="space-description">
+              近づいて、話して。また、つながる。
+            </p>
+          </div>
+        </div>
+        <div class="theme-banner">
+          <strong id="theme-name">農業の村</strong
+          ><span id="theme-description"
+            >実った畑と風車のある、のんびりした村。</span
+          >
+        </div>
+        <nav
+          id="village-nav"
+          class="village-nav"
+          aria-label="4つの村の部屋"
+          hidden
+        ></nav>
+        <div class="map-stage">
+          <div class="map-wrap">
+            <div id="village-labels" hidden></div>
+            <button id="fire-hotspot" class="learning-hotspot" hidden>
+              🔥 焚き火
+            </button>
+            <button id="lesson-hotspot" class="learning-hotspot" hidden>
+              📖 GitHub・Linux
+            </button>
+            <canvas
+              id="world"
+              width="1000"
+              height="680"
+              tabindex="0"
+              aria-label="仮想ラウンジ。矢印キーまたはWASDで移動。数字1〜7でアクション、0で解除。タップした方向へ移動できます。"
+            ></canvas>
+            <div class="map-badge" id="zone-label">☀ こもれびラウンジ</div>
+            <div class="map-tip" id="map-tip">
+              クリックで移動 ／ ↑ ↓ ← → ・ WASD
+            </div>
+          </div>
+        </div>
+        <div class="shortcut-hint">
+          1 ハート · 2 手振り · 3 拍手 · 4 ダンス · 5 挙手 · 6 走る · 7 馬車 · 0
+          解除
+        </div>
+        <div class="interaction-bar">
+          <label
+            >状態
+            <select id="presence" disabled>
+              <option value="available">参加中</option>
+              <option value="busy">取り込み中</option>
+              <option value="away">離席中</option>
+            </select></label
+          ><button id="hand" aria-pressed="false" disabled>✋ 挙手</button>
+          <button id="open-actions" disabled>アクション・遊び ⌨</button>
+          <button id="call" disabled>通話に参加</button>
+          <button
+            id="open-call-settings"
+            aria-expanded="false"
+            aria-controls="call-settings"
+          >
+            通話設定
+          </button>
+          <span id="action-status" role="status"></span>
+          <button id="toggle-chat" aria-expanded="false">
+            チャット・参加者
+          </button>
+        </div>
+        <section id="poll-panel" class="poll-panel" hidden>
+          <h2 id="poll-question"></h2>
+          <div id="poll-options"></div>
+          <p id="poll-total"></p>
+        </section>
+        <footer>
+          <span id="movement-help"
+            >点線は会話の範囲。ミーティング内では同じエリア全体に届きます。</span
+          ><span id="shared-help">集中エリアでは通話を受信しません。</span>
+        </footer>
+      </section>
+      <aside>
+        <button id="close-chat">マップに戻る</button>
+        <section class="side-heading">
+          <p class="eyebrow">CONVERSATION</p>
+          <h2>おしゃべり・お知らせ</h2>
+          <p id="nearby">入室すると会話に参加できます</p>
+          <label for="chat-scope" class="sr-only">チャットの範囲</label
+          ><select id="chat-scope">
+            <option value="nearby">近くの人</option>
+            <option value="room">スペース全体</option>
+            <option value="dm">ダイレクトメッセージ</option></select
+          ><label for="dm-to" class="sr-only">送信相手</label
+          ><select id="dm-to" hidden></select>
+        </section>
+        <div id="messages" role="log" aria-label="チャット">
+          <div class="empty">
+            <span>☕</span>
+            <h3>会話は、ここから。</h3>
+            <p>近くの人、全体、個別を<br />選んで送信できます。</p>
+          </div>
+        </div>
+        <form id="chat-form">
+          <label class="sr-only" for="message">メッセージ</label>
+          <div class="composer">
+            <input
+              id="message"
+              maxlength="300"
+              placeholder="ひとこと、話しかけてみよう"
+              autocomplete="off"
+              disabled
+            /><button aria-label="送信" id="send" disabled>↑</button>
+          </div>
+          <p id="chat-status" role="status">チャット履歴は保存されません</p>
+        </form>
+        <div class="people">
+          <div class="row">
+            <h3>参加者・挙手</h3>
+            <button id="export-people" disabled>一覧CSV</button>
+          </div>
+          <label class="sr-only" for="people-search">参加者を検索</label
+          ><input id="people-search" placeholder="名前で検索" />
+          <ul id="people"></ul>
+        </div>
+        <button id="leave" class="leave" disabled>退出・スペース切替 ↗</button>
+      </aside>
+    </main>
+    <dialog id="welcome">
+      <form id="join-form">
+        <p class="eyebrow">WELCOME, TRAVELER</p>
+        <h2>今日は、どの自分で冒険する？</h2>
+        <p class="muted">
+          小さな村で、いつもの仲間と。アバターはおまかせでも選べます。
+        </p>
+        <div class="join-layout">
+          <div class="join-details">
+            <label for="room-select">参加するスペース</label
+            ><select id="room-select">
+              <option value="lounge">みんなのラウンジ</option></select
+            ><label for="join-password">入室パスワード（必要な場合）</label
+            ><input
+              id="join-password"
+              type="password"
+              maxlength="128"
+              autocomplete="current-password"
+            /><label for="name">あなたの名前</label
+            ><input
+              id="name"
+              maxlength="20"
+              required
+              placeholder="例：はる"
+              autocomplete="nickname"
+            />
+          </div>
+          <div class="character-picker">
+            <fieldset class="avatar-fieldset">
+              <legend>あなたのアバター</legend>
+              <div id="avatars" class="avatar-grid"></div>
+            </fieldset>
+            <div class="avatar-roll">
+              <button type="button" id="random-avatar">
+                ↻ おまかせで選び直す</button
+              ><span id="avatar-caption" role="status"></span>
+            </div>
+            <fieldset>
+              <legend>服の色</legend>
+              <div id="colors"></div>
+            </fieldset>
+          </div>
+        </div>
+        <p id="join-error" role="alert"></p>
+        <button class="primary" id="join-button">ラウンジに入る →</button
+        ><button type="button" id="open-create" class="secondary">
+          新しいスペースを作る
+        </button>
+        <p class="fine">ゲスト参加・最大30人。通話は少人数向けです。</p>
+      </form>
+    </dialog>
+    <dialog id="create-dialog">
+      <form id="create-form">
+        <h2>スペースを作る</h2>
+        <label for="create-theme">村のテーマ</label
+        ><select id="create-theme"></select>
+        <canvas
+          id="create-theme-preview"
+          class="theme-preview"
+          width="1000"
+          height="680"
+          aria-label="選択した村の見本"
+        ></canvas>
+        <p id="create-theme-description" class="fine"></p>
+        <label for="create-name">スペース名</label
+        ><input id="create-name" required maxlength="20" /><label
+          for="owner-password"
+          >管理パスワード（10文字以上）</label
+        ><input
+          id="owner-password"
+          type="password"
+          required
+          minlength="10"
+          maxlength="128"
+          autocomplete="new-password"
+        /><label for="create-password">参加者の入室パスワード（任意）</label
+        ><input
+          id="create-password"
+          type="password"
+          maxlength="128"
+          autocomplete="new-password"
+        /><label class="checkbox"
+          ><input id="create-public" type="checkbox" />
+          公開一覧に表示する</label
+        >
+        <p class="fine">
+          非公開でも招待リンクで参加できます。管理パスワードは忘れないよう保管してください。復旧メール機能はありません。
+        </p>
+        <button class="primary">作成する</button
+        ><button type="button" data-close>キャンセル</button>
+        <p class="form-error" role="alert"></p>
+      </form>
+    </dialog>
+    <dialog id="profile-dialog">
+      <form id="profile-form">
+        <h2>プロフィール</h2>
+        <fieldset class="avatar-fieldset">
+          <legend>アバターを変更</legend>
+          <div id="profile-avatars" class="avatar-grid"></div>
+        </fieldset>
+        <button type="button" id="random-profile-avatar">
+          ↻ おまかせで選び直す
+        </button>
+        <label for="profile-name">表示名</label
+        ><input id="profile-name" maxlength="20" required /><label
+          for="profile-bio"
+          >ひとこと・所属</label
+        ><textarea id="profile-bio" maxlength="120" rows="3"></textarea
+        ><label for="profile-color">アバターの色</label
+        ><select id="profile-color">
+          <option value="0">緑</option>
+          <option value="1">オレンジ</option>
+          <option value="2">紫</option>
+          <option value="3">ピンク</option>
+          <option value="4">黄</option></select
+        ><button class="primary">保存</button
+        ><button type="button" data-close>閉じる</button>
+        <p class="form-error" role="alert"></p>
+      </form>
+    </dialog>
+    <dialog id="board-dialog" class="wide-dialog">
+      <h2>掲示板・共有資料</h2>
+      <p class="fine">投稿はスペースに保存されます。削除は主催者が行えます。</p>
+      <div id="board-posts"></div>
+      <form id="board-form">
+        <label for="board-text">お知らせ・メモ</label
+        ><textarea id="board-text" required maxlength="500" rows="3"></textarea
+        ><label for="board-url">資料リンク（HTTPS・任意）</label
+        ><input
+          id="board-url"
+          type="url"
+          maxlength="500"
+          placeholder="https://"
+        /><button class="primary">掲示板に投稿</button>
+        <p class="form-error" role="alert"></p>
+      </form>
+      <button data-close>閉じる</button>
+    </dialog>
+    <dialog id="whiteboard-dialog" class="wide-dialog">
+      <h2>みんなのホワイトボード</h2>
+      <p class="fine">
+        参加者全員で描けます。最大500ストローク。サーバー再起動で消去されます。
+      </p>
+      <label for="pen-color">ペンの色</label
+      ><select id="pen-color">
+        <option value="#365c49">緑</option>
+        <option value="#bd655c">赤</option>
+        <option value="#526db0">青</option>
+        <option value="#333333">黒</option></select
+      ><canvas
+        id="whiteboard"
+        width="800"
+        height="450"
+        aria-label="共同描画キャンバス"
+      ></canvas
+      ><button id="clear-whiteboard" hidden>描画をすべて消す</button
+      ><button id="download-whiteboard">画像を保存</button
+      ><button data-close>閉じる</button>
+    </dialog>
+    <dialog id="devices-dialog">
+      <h2>デバイス設定</h2>
+      <p class="fine">
+        許可後にデバイス名が表示されます。変更後はマイク・カメラを一度OFF→ONにしてください。
+      </p>
+      <label for="audio-device">マイク</label
+      ><select id="audio-device">
+        <option value="">システム既定</option></select
+      ><label for="video-device">カメラ</label
+      ><select id="video-device">
+        <option value="">システム既定</option></select
+      ><button data-close>閉じる</button>
+    </dialog>
+    <dialog id="admin-dialog" class="wide-dialog">
+      <h2>主催者メニュー</h2>
+      <form id="admin-login-form">
+        <label for="admin-password">管理パスワード</label
+        ><input
+          id="admin-password"
+          type="password"
+          maxlength="128"
+          autocomplete="current-password"
+        /><button class="primary">管理者としてログイン</button>
+        <p class="form-error" role="alert"></p>
+      </form>
+      <div id="admin-tools" hidden>
+        <div class="admin-tabs">
+          <button data-section="settings">スペース設定</button
+          ><button data-section="event">授業・イベント</button
+          ><button data-section="layout">マップ編集</button>
+        </div>
+        <section id="admin-settings">
+          <form id="settings-form">
+            <label for="settings-name">スペース名</label
+            ><input id="settings-name" required maxlength="20" /><label
+              for="settings-description"
+              >説明</label
+            ><textarea id="settings-description" maxlength="120"></textarea
+            ><label for="settings-capacity">定員（2〜30）</label
+            ><input
+              id="settings-capacity"
+              type="number"
+              min="2"
+              max="30"
+              required
+            /><label class="checkbox"
+              ><input id="settings-locked" type="checkbox" />
+              新規入室を停止</label
+            ><label class="checkbox"
+              ><input id="settings-public" type="checkbox" />
+              公開一覧に表示</label
+            ><button class="primary">設定を保存</button>
+            <p class="form-error" role="alert"></p>
+          </form>
+          <form id="password-form">
+            <label for="settings-password"
+              >入室パスワードを変更（空欄で解除）</label
+            ><input
+              id="settings-password"
+              type="password"
+              maxlength="128"
+              autocomplete="new-password"
+            /><button>パスワードを更新</button>
+            <p class="form-error" role="alert"></p>
+          </form>
+        </section>
+        <section id="admin-event" hidden>
+          <form id="announce-form">
+            <label for="announcement">全体へのお知らせ</label
+            ><textarea id="announcement" required maxlength="300"></textarea
+            ><button>お知らせを送る</button>
+            <p class="form-error" role="alert"></p>
+          </form>
+          <form id="poll-form">
+            <label for="poll-title">投票・理解度チェックの質問</label
+            ><input id="poll-title" maxlength="120" required /><label
+              for="poll-choices"
+              >選択肢（1行に1つ、2〜4個）</label
+            ><textarea
+              id="poll-choices"
+              rows="4"
+              required
+              placeholder="理解できた&#10;もう一度聞きたい"
+            ></textarea
+            ><button>投票を開始</button>
+            <p class="form-error" role="alert"></p>
+          </form>
+          <button id="close-poll">投票を締め切る</button>
+          <p class="fine">
+            ゲスト向けの簡易投票です。本人確認や厳密な一人一票は保証しません。
+          </p>
+        </section>
+        <section id="admin-layout" hidden>
+          <label for="map-theme">マップテンプレート</label
+          ><select id="map-theme"></select
+          ><canvas
+            id="theme-preview"
+            class="theme-preview"
+            width="1000"
+            height="680"
+            aria-label="変更する村の見本"
+          ></canvas>
+          <p id="theme-preview-description" class="fine"></p>
+          <button id="apply-theme">テンプレートを適用</button>
+          <p class="fine">
+            村のテーマと装飾配置を置き換えます。歩ける広場と交流エリアはそのまま使えます。天使・ボスは村のキャラクターで、戦闘や建物への入室はありません。
+          </p>
+          <button id="edit-add">マップをクリックして装飾を追加</button
+          ><button id="edit-remove">マップをクリックして装飾を削除</button
+          ><button id="edit-stop">編集を終了</button>
+        </section>
+      </div>
+      <button data-close>閉じる</button>
+    </dialog>
+    <dialog id="help-dialog">
+      <h2>こもれびの使い方</h2>
+      <ol>
+        <li>
+          矢印・WASD・クリックで移動します。4つの村の共通マップでは境界を越えると別の村の部屋に移ります。村名のボタンでも移動できます。
+        </li>
+        <li>
+          4つの村の共通マップでは同じ村の人、単独テーマでは近くの人の声を聞けます。マイク・カメラは個別にONにします。掲示板・ホワイトボード・投票は4つの村で共通です。
+        </li>
+        <li>
+          ミーティングエリアではエリア内の人全員と会話できます。集中エリアでは通話が切れます。
+        </li>
+        <li>
+          主催者が「全体へ配信」をONにすると、その主催者の音声・映像・共有画面が通話参加者へ届きます。
+        </li>
+        <li>
+          授業では挙手・リアクション・投票・全体チャットをご利用ください。
+        </li>
+      </ol>
+      <p>
+        画面共有はブラウザの選択画面で許可します。共有音声は未対応です。通話はHTTPSまたはlocalhostで使用してください。
+      </p>
+      <p class="fine">
+        現在の映像方式は少人数向けです。別ネットワーク間ではTURN、大規模イベントにはSFUなどの追加基盤と負荷試験が必要です。
+      </p>
+      <button data-close>閉じる</button>
+    </dialog>
+    <dialog id="actions-dialog" aria-label="アバターのアクション">
+      <h2>アクション・ショートカット</h2>
+      <p>マップを選択して数字キーで操作。文字入力中は作動しません。</p>
+      <div class="action-buttons">
+        <button data-action="heart" disabled>1 · 🫶 ハートポーズ</button>
+        <button data-action="wave" disabled>2 · 👋 手振り</button>
+        <button data-action="clap" disabled>3 · 👏 拍手する</button>
+        <button data-action="dance" disabled>4 · 💃 ダンス</button>
+        <button data-action="run" aria-pressed="false" disabled>
+          6 · 🏃 走る
+        </button>
+        <button data-action="carriage" aria-pressed="false" disabled>
+          7 · 🐴 馬車に乗る
+        </button>
+        <button data-action="stop" disabled>0 · 歩きに戻る・ポーズ終了</button>
+      </div>
+      <p class="muted">
+        矢印・WASD・クリックで移動。馬車は招待して3人まで相乗りできます。挙手は上の「挙手」から。
+      </p>
+      <div id="reactions" aria-label="リアクション">
+        <button data-emoji="👋" aria-label="手を振る">👋</button
+        ><button data-emoji="👏" aria-label="拍手">👏</button
+        ><button data-emoji="❤️" aria-label="ハート">❤️</button
+        ><button data-emoji="🎉" aria-label="お祝い">🎉</button
+        ><button data-emoji="👍" aria-label="いいね">👍</button>
+      </div>
+      <div class="play-menu">
+        <button id="open-campfire">🔥 話題の焚き火</button
+        ><button id="open-badge">💬 交流の目印</button
+        ><button id="open-learning">📖 GitHub・Linuxを学ぶ</button
+        ><button id="open-look">🐣 ペット・着せ替え</button>
+        <button id="open-ride">🐴 相乗り馬車</button>
+        <button id="open-scenery">🌤 天気・時間・季節</button>
+        <button id="take-photo">📸 記念撮影</button>
+      </div>
+      <p>5 · 挙手／手を下ろす</p>
+      <button data-close>閉じる</button>
+    </dialog>
+
+    <dialog id="look-dialog" aria-label="ペット・着せ替え">
+      <h2>ペットとおでかけの服</h2>
+      <canvas
+        id="look-preview"
+        width="240"
+        height="140"
+        aria-label="着せ替えの見本"
+      ></canvas>
+      <div class="play-fields">
+        <label>ペット<select id="look-pet"></select></label>
+        <label>帽子<select id="look-hat"></select></label>
+        <label>服<select id="look-clothes"></select></label>
+        <label>小物<select id="look-accessory"></select></label>
+      </div>
+      <p>
+        選んだペットがついてきます。服の色やアバターはプロフィールから変更できます。
+      </p>
+      <button id="save-look">この姿で出かける</button
+      ><button id="stroke-pet">ペットをなでる</button>
+      <p id="look-status" role="status"></p>
+      <button data-close>閉じる</button>
+    </dialog>
+    <dialog id="ride-dialog" aria-label="相乗り馬車">
+      <h2>みんなで村めぐり</h2>
+      <p>運転手＋同乗者2人。近くの人に招待を送り、承諾すると一緒に乗れます。</p>
+      <p id="ride-status" role="status"></p>
+      <button id="ride-start">馬車を出す</button>
+      <label>招待する人<select id="ride-target"></select></label
+      ><button id="ride-invite">相乗りに招待</button>
+      <section id="ride-incoming" hidden>
+        <p id="ride-invite-text"></p>
+        <button id="ride-accept">乗車する</button
+        ><button id="ride-decline">今回は見送る</button>
+      </section>
+      <button id="ride-leave">降りる・馬車をしまう</button
+      ><button data-close>閉じる</button>
+    </dialog>
+    <dialog id="scenery-dialog" aria-label="天気・時間・季節">
+      <h2>村の空と季節</h2>
+      <div class="play-fields">
+        <label>天気<select id="scenery-weather"></select></label
+        ><label>時間帯<select id="scenery-time"></select></label
+        ><label>季節<select id="scenery-season"></select></label>
+      </div>
+      <p>
+        自動は日本時間の昼・夕暮れ・夜と季節に合わせます。天気は演出で、実際の天気予報とは連動しません。
+      </p>
+      <button id="preview-scenery">自分の画面で楽しむ</button
+      ><button id="share-scenery">全員に反映（主催者）</button
+      ><button id="reset-scenery">共有の景色に戻す</button>
+      <p id="scenery-status" role="status"></p>
+      <button data-close>閉じる</button>
+    </dialog>
+    <dialog id="photo-dialog" aria-label="記念撮影">
+      <h2>こもれびの思い出</h2>
+      <img id="photo-preview" alt="村で撮った記念写真" />
+      <p>
+        マップと参加者名を保存します。チャット・通話映像は含みません。スマホでは画像の長押しでも保存できます。
+      </p>
+      <a id="photo-download" download="komorebi-photo.png">写真を保存（PNG）</a
+      ><button data-close>閉じる</button>
+    </dialog>
+    <section
+      id="call-settings"
+      hidden
+      class="call-panel"
+      aria-label="音声・ビデオ通話"
+    >
+      <button id="close-call-settings">閉じる</button>
+      <div class="call-controls">
+        <button id="mic" aria-pressed="false" disabled>マイク OFF</button
+        ><button id="camera" aria-pressed="false" disabled>カメラ OFF</button
+        ><button id="screen" aria-pressed="false" disabled>画面を共有</button
+        ><button id="broadcast" aria-pressed="false" hidden>
+          全体へ配信 OFF</button
+        ><button id="devices" disabled>デバイス設定</button
+        ><button id="mute-speakers">受信音声をミュート</button
+        ><button id="resume-audio">音を再生</button>
+      </div>
+      <p class="fine" id="call-info">
+        マイク・カメラは自分でONにするまで起動しません。
+      </p>
+      <div id="media-grid"></div>
+    </section>
+
+    <dialog id="campfire-dialog" aria-label="話題の焚き火">
+      <h2>話題の焚き火</h2>
+      <p id="campfire-topic" class="topic-card"></p>
+      <p id="campfire-status" role="status"></p>
+      <p>
+        輪の中にいる人には、村をまたいで通常チャットが届きます。通話は参加した人だけ。話すのも聞くだけも自由です。
+      </p>
+      <button id="walk-to-fire">焚き火へ歩く</button
+      ><button id="next-topic">次のお題</button
+      ><button data-close>閉じる</button>
+    </dialog>
+    <dialog id="badge-dialog" aria-label="交流の目印">
+      <h2>今の気持ちを目印に</h2>
+      <label for="social-badge">交流の目印</label
+      ><select id="social-badge"></select>
+      <p>
+        アバターと参加者一覧に表示します。マイクやカメラは自動でONになりません。
+      </p>
+      <button id="save-badge">この目印にする</button
+      ><button data-close>閉じる</button>
+    </dialog>
+    <dialog id="learning-dialog" aria-label="GitHub・Linuxの学び">
+      <h2>都会の学びの広場</h2>
+      <p class="material-status">
+        スパルタ塾コース：準備中。現在は一般的なGitHub・Linuxの基礎問題です。スパルタ塾の全教材に沿ったテストは、教材の確認後に追加します。
+      </p>
+      <a id="notion-material" target="_blank" rel="noopener noreferrer"
+        >スパルタ塾のNotionを開く ↗</a
+      >
+      <div id="quiz-courses">
+        <p>
+          選択式の理解度チェック。GitHubは章別2問または全6章各1問、その他のコースは6問です。解説と誤答の復習ができます。
+        </p>
+        <label for="quiz-course">コース</label
+        ><select id="quiz-course">
+          <option value="git">GitHubの使い方・6ステップ</option>
+          <option value="linux">Linuxの基礎</option>
+          <option value="mixed">GitHub・Linuxまとめ</option>
+        </select>
+        <section id="github-guide">
+          <p>
+            git_practiceを題材に、GitHubの基本操作を順番に練習します。問題・説明は独自作成です。
+          </p>
+          <a id="github-practice" target="_blank" rel="noopener noreferrer"
+            >練習用リポジトリを開く ↗</a
+          >
+          <label for="github-step">学ぶステップ</label
+          ><select id="github-step">
+            <option value="all">全6ステップのまとめテスト（各章1問）</option>
+          </select>
+          <div id="github-reading"></div>
+          <p id="github-read-progress"></p>
+        </section>
+        <button id="walk-to-lesson">学びの広場へ歩く</button
+        ><button id="quiz-start">理解度チェックを始める</button>
+        <p id="quiz-location"></p>
+      </div>
+      <div id="quiz-active" hidden>
+        <p id="quiz-progress"></p>
+        <progress id="quiz-meter" value="0" max="6"></progress>
+        <h3 id="quiz-question"></h3>
+        <div id="quiz-choices"></div>
+        <div id="quiz-feedback" role="status"></div>
+        <button id="quiz-next" hidden>次の問題へ</button
+        ><button id="quiz-cancel">コース選択に戻る</button>
+      </div>
+      <div id="quiz-result" hidden>
+        <h3 id="quiz-score"></h3>
+        <p>
+          この回の基礎問題の結果です。教材全体の習得度を保証するものではありません。
+        </p>
+        <div id="quiz-review"></div>
+        <button id="quiz-restart">コース選択に戻る</button>
+      </div>
+      <p id="quiz-error" role="alert"></p>
+      <button data-close>閉じる</button>
+    </dialog>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
